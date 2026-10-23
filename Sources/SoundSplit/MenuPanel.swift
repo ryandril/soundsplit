@@ -18,7 +18,7 @@ final class MenuBarController: NSObject {
         super.init()
         // Keep the top edge pinned under the icon when the app list grows or shrinks.
         host.onSizeChange = { [weak self] in
-            guard let self, panel.isVisible else { return }
+            guard let self, isOpen else { return }
             position()
         }
 
@@ -26,6 +26,8 @@ final class MenuBarController: NSObject {
             button.image = NSImage(systemSymbolName: "hifispeaker.2", accessibilityDescription: "SoundSplit")
             button.target = self
             button.action = #selector(toggle)
+            // System menus react on press, not release.
+            button.sendAction(on: [.leftMouseDown, .rightMouseDown])
         }
         #if DEBUG
         // `--open-panel` opens the panel at launch and prints its frames, to check sizing without clicking.
@@ -40,15 +42,24 @@ final class MenuBarController: NSObject {
         #endif
     }
 
+    private var isOpen = false
+
     @objc private func toggle() {
-        panel.isVisible ? close() : open()
+        isOpen ? close() : open()
     }
 
-    private func open() {
+    func open() {
+        guard !isOpen else { return }
+        isOpen = true
         position()
         panel.makeKeyAndOrderFront(nil)
-        statusItem.button?.highlight(true)
+        // Highlight after this click finishes: highlighting during the button's own click handling makes it swallow the next click.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, isOpen else { return }
+            statusItem.button?.highlight(true)
+        }
 
+        // Clicks in other apps. Clicks on our own icon never reach a global monitor, so they only go through toggle().
         let outside = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             MainActor.assumeIsolated { self?.close() }
         }
@@ -61,6 +72,8 @@ final class MenuBarController: NSObject {
     }
 
     private func close() {
+        guard isOpen else { return }
+        isOpen = false
         panel.orderOut(nil)
         statusItem.button?.highlight(false)
         monitors.forEach(NSEvent.removeMonitor)
