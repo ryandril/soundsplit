@@ -2,7 +2,10 @@
 
 Play different apps on different speakers at the same time. Music on the Bluetooth speaker, a call on the MacBook. Free and open source.
 
-<img src="docs/screenshot.png" width="320" alt="SoundSplit menu bar panel">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img src="docs/screenshot-light.png" width="320" alt="SoundSplit menu bar panel">
+</picture>
 
 SoundSplit lives in the menu bar. For each app that makes sound, pick an output. Each output has its own volume slider.
 

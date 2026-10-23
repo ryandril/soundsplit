@@ -10,11 +10,15 @@ enum Snapshot {
         guard let flag = args.firstIndex(of: "--snapshot"), flag + 1 < args.count else { return }
         let path = args[flag + 1]
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            let view = NSHostingView(rootView: ContentView().environmentObject(store))
+            let dark = args.contains("--dark")
+            let view = NSHostingView(rootView: ContentView()
+                .environmentObject(store)
+                .environment(\.colorScheme, dark ? .dark : .light)
+                .background(Color(nsColor: dark ? NSColor(white: 0.16, alpha: 1) : .white)))
             view.frame.size = view.fittingSize
             let window = NSWindow(contentRect: view.frame, styleMask: [.borderless], backing: .buffered, defer: false)
             window.contentView = view
-            window.appearance = NSAppearance(named: args.contains("--dark") ? .darkAqua : .aqua)
+            window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
             window.backgroundColor = .windowBackgroundColor
             window.orderFrontRegardless()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
