@@ -1,0 +1,87 @@
+body { width: 300px; }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.favicon { width: 16px; height: 16px; flex: none; }
+
+.tab-text { min-width: 0; }
+
+.tab-title,
+.others li span:first-child {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tab-title { font-weight: 500; }
+.tab-status { font-size: 12px; }
+
+.needs-access,
+.unsupported,
+.error { margin: 0; padding: 12px 14px; }
+
+.needs-access p { margin: 0 0 10px; }
+.error { color: #d70015; border-top: 1px solid var(--line); }
+
+.options { padding: 0 6px 6px; }
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), background-color 140ms ease;
+}
+
+.option .check { width: 14px; flex: none; color: var(--accent); visibility: hidden; }
+.option[aria-checked="true"] .check { visibility: visible; }
+.option[aria-checked="true"] { font-weight: 500; }
+.option:active { background: var(--press); transform: scale(0.98); }
+.option:disabled { opacity: 0.5; cursor: default; }
+
+@media (hover: hover) and (pointer: fine) {
+  .option:hover { background: var(--hover); }
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 14px;
+}
+
+.volume input { flex: 1; accent-color: var(--accent); }
+.volume-value { width: 26px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.others { border-top: 1px solid var(--line); }
+.others ul { list-style: none; margin: 0; padding: 0 6px 8px; }
+
+.others li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+}
+
+.others li span:nth-child(2) { color: var(--muted); font-size: 12px; max-width: 110px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.others .reset {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px;
+}

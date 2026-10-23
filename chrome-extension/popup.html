@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SoundSplit</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="tab">
+    <img class="favicon" alt="">
+    <div class="tab-text">
+      <div class="tab-title"></div>
+      <div class="tab-status muted"></div>
+    </div>
+  </header>
+
+  <section class="needs-access" hidden>
+    <p>Chrome only shares speaker names with extensions that have microphone access.</p>
+    <button class="button primary" data-action="allow">Show my speakers</button>
+  </section>
+
+  <p class="unsupported muted" hidden>Chrome's own pages can't be moved to another speaker.</p>
+
+  <section class="picker" hidden>
+    <h2 class="label">Play this tab on</h2>
+    <div class="options" role="radiogroup" aria-label="Output for this tab"></div>
+    <div class="volume" hidden>
+      <span class="muted">Volume</span>
+      <input type="range" min="0" max="100" step="1" aria-label="Tab volume">
+      <span class="volume-value muted"></span>
+    </div>
+  </section>
+
+  <p class="error" role="alert" hidden></p>
+
+  <section class="others" hidden>
+    <h2 class="label">Other tabs</h2>
+    <ul></ul>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

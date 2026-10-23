@@ -27,6 +27,19 @@ Under the hood it uses Core Audio [process taps](https://developer.apple.com/doc
 
 **Tip:** if you use a Multi-Output Device to play everything on two speakers, switch the system output back to one real device. Then send only the apps you want to the other one.
 
+## Different tabs on different speakers (Chrome)
+
+The Mac app moves whole apps. Chrome plays every tab through one shared process, so to macOS all tabs look like one app. For per-tab control there's a companion Chrome extension in [`chrome-extension/`](chrome-extension). It works in Chrome, Edge, Brave and Arc (version 116+).
+
+1. Download `SoundSplit-Chrome.zip` from [Releases](https://github.com/ryandril/soundsplit/releases) and unzip it.
+2. Open `chrome://extensions`, turn on **Developer mode** (top right), click **Load unpacked**, and pick the unzipped folder.
+3. A setup tab opens. Click **Allow**: Chrome only shares speaker names with extensions that have microphone access. The microphone opens for an instant and closes; nothing is recorded.
+4. On a tab that's playing, click the SoundSplit icon and pick a speaker. Each moved tab gets its own volume slider.
+
+How it works: the extension captures the tab's audio (which stops Chrome playing it normally) and plays it on the chosen speaker from a hidden extension page. While a tab is moved, Chrome shows its "this tab is being shared" indicator. Pick **System output** to put the tab back. Closing the tab ends it too.
+
+Safari can't do this: it gives extensions no way to choose a speaker.
+
 ## Build from source
 
 Needs the Xcode Command Line Tools (`xcode-select --install`).

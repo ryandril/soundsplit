@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SoundSplit for Chrome</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { display: grid; place-items: center; min-height: 100vh; padding: 16px; font-size: 14px; }
+    main { max-width: 420px; }
+    h1 { font-size: 20px; font-weight: 600; margin: 0 0 8px; }
+    p { margin: 0 0 12px; }
+    .button { margin-top: 8px; padding: 7px 14px; }
+    .done { color: #1e8e3e; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Let SoundSplit see your speakers</h1>
+    <p>Chrome only tells extensions the names of your speakers after they get microphone access. So Chrome will ask about your microphone next.</p>
+    <p class="muted">SoundSplit never listens: it opens the microphone for an instant to unlock the speaker list, then closes it. Nothing is recorded or sent anywhere.</p>
+    <button class="button primary">Allow</button>
+    <p class="done" hidden>All set. Close this tab, then click the SoundSplit icon on any tab that's playing sound.</p>
+  </main>
+  <script src="permission.js"></script>
+</body>
+</html>
