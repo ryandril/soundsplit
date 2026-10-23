@@ -29,22 +29,15 @@ final class MenuBarController: NSObject {
             // System menus react on press, not release.
             button.sendAction(on: [.leftMouseDown, .rightMouseDown])
         }
-        #if DEBUG
-        // `--open-panel` opens the panel at launch and prints its frames, to check sizing without clicking.
-        if CommandLine.arguments.contains("--open-panel") {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [self] in
-                open()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
-                    FileHandle.standardError.write("panel \(panel.frame) content \(host.frame)\n".data(using: .utf8)!)
-                }
-            }
-        }
-        #endif
     }
 
     private var isOpen = false
+    private var closedAt = Date.distantPast
 
     @objc private func toggle() {
+        // A click on the icon can reach the outside-click monitor first (the system draws menu bar icons),
+        // which closes the panel just before this action would. Treat that as the close, not a reopen.
+        if !isOpen && Date().timeIntervalSince(closedAt) < 0.3 { return }
         isOpen ? close() : open()
     }
 
@@ -59,9 +52,12 @@ final class MenuBarController: NSObject {
             statusItem.button?.highlight(true)
         }
 
-        // Clicks in other apps. Clicks on our own icon never reach a global monitor, so they only go through toggle().
+        // Clicks anywhere else close the panel; clicks on the icon are left to toggle().
         let outside = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            MainActor.assumeIsolated { self?.close() }
+            MainActor.assumeIsolated {
+                guard let self, !self.iconFrame.contains(NSEvent.mouseLocation) else { return }
+                self.close()
+            }
         }
         let escape = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard event.keyCode == 53 else { return event }
@@ -74,10 +70,16 @@ final class MenuBarController: NSObject {
     private func close() {
         guard isOpen else { return }
         isOpen = false
+        closedAt = Date()
         panel.orderOut(nil)
         statusItem.button?.highlight(false)
         monitors.forEach(NSEvent.removeMonitor)
         monitors = []
+    }
+
+    private var iconFrame: NSRect {
+        guard let button = statusItem.button, let window = button.window else { return .zero }
+        return window.convertToScreen(button.convert(button.bounds, to: nil))
     }
 
     private func position() {
