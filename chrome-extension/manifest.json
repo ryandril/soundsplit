@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "description": "Play each tab on a different speaker.",
   "minimum_chrome_version": "116",
-  "permissions": ["tabCapture", "offscreen", "storage"],
+  "permissions": ["activeTab", "tabCapture", "offscreen", "storage"],
   "background": { "service_worker": "background.js" },
   "action": {
     "default_title": "SoundSplit",

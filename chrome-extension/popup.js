@@ -118,7 +118,8 @@ $('[data-action="allow"]').addEventListener('click', () => {
 
   ({ routes } = await send({ type: 'list' }));
 
-  if (!/^https?:|^file:/.test(tab.url || '')) {
+  // Without a URL we can't tell, so let the capture itself report a problem rather than refusing up front.
+  if (tab.url && !/^https?:|^file:/.test(tab.url)) {
     $('.unsupported').hidden = false;
     $('.tab-status').textContent = '';
   } else if (!(await loadDevices())) {
