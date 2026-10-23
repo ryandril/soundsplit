@@ -11,11 +11,11 @@ struct ContentView: View {
             }
 
             SectionLabel("Outputs")
-            VStack(spacing: 14) {
+            VStack(spacing: 10) {
                 ForEach(store.devices) { DeviceRow(device: $0) }
             }
             .padding(.horizontal, 14)
-            .padding(.bottom, 14)
+            .padding(.bottom, 12)
 
             Divider()
 
@@ -28,15 +28,15 @@ struct ContentView: View {
                     .padding(.bottom, 14)
             } else {
                 ScrollView {
-                    VStack(spacing: 2) {
+                    VStack(spacing: 0) {
                         ForEach(store.apps) { AppRow(app: $0) }
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 5)
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .frame(maxHeight: 300)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.bottom, 8)
+                .padding(.bottom, 5)
             }
 
             if let problem = store.problem {
@@ -50,7 +50,7 @@ struct ContentView: View {
             Divider()
             Footer()
         }
-        .frame(width: 320)
+        .frame(width: 300)
     }
 }
 
@@ -59,12 +59,13 @@ private struct SectionLabel: View {
     init(_ text: String) { self.text = text }
 
     var body: some View {
+        // Same weight and size as the section titles in the system's own menus.
         Text(text)
-            .font(.caption.weight(.medium))
+            .font(.system(size: 12, weight: .semibold))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 14)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            .padding(.top, 10)
+            .padding(.bottom, 6)
     }
 }
 
@@ -81,15 +82,15 @@ private struct DeviceRow: View {
 
     var body: some View {
         let playing = store.apps(playingOn: device)
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
                 Image(systemName: device.symbol)
                     .frame(width: 18)
                     .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text(device.name).lineLimit(1)
                     Text(subtitle(playing: playing))
-                        .font(.caption)
+                        .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -140,9 +141,12 @@ private struct PermissionBanner: View {
     }
 }
 
+/// Reads like a menu item: the whole row is the button, highlighted on hover, and opens the output menu.
 private struct AppRow: View {
     @EnvironmentObject private var store: Store
     let app: AudioApp
+    // Not @State: on this SDK it's a macro that ships only with full Xcode, and the project builds with the Command Line Tools.
+    @StateObject private var hover = Hover()
 
     private var selection: Binding<String> {
         Binding(
@@ -151,20 +155,13 @@ private struct AppRow: View {
         )
     }
 
+    private var current: String {
+        guard let uid = store.assignments[app.id] else { return "System output" }
+        return store.isConnected(uid) ? store.name(ofDevice: uid) : "\(store.name(ofDevice: uid)) (off)"
+    }
+
     var body: some View {
-        HStack(spacing: 8) {
-            Image(nsImage: app.icon)
-                .resizable()
-                .frame(width: 20, height: 20)
-            Text(app.name).lineLimit(1)
-            Circle()
-                .fill(.green)
-                .frame(width: 5, height: 5)
-                .opacity(app.isPlaying ? 1 : 0)
-                // State change seen a few times a minute: a short fade, no movement.
-                .animation(.easeOut(duration: 0.15), value: app.isPlaying)
-                .accessibilityLabel(app.isPlaying ? "Playing" : "")
-            Spacer(minLength: 8)
+        Menu {
             Picker("Output for \(app.name)", selection: selection) {
                 Text("System output").tag("")
                 Divider()
@@ -173,14 +170,44 @@ private struct AppRow: View {
                     Text("\(store.name(ofDevice: saved)) (off)").tag(saved)
                 }
             }
+            .pickerStyle(.inline)
             .labelsHidden()
-            .pickerStyle(.menu)
-            .controlSize(.small)
-            .frame(width: 136)
+        } label: {
+            HStack(spacing: 8) {
+                Image(nsImage: app.icon)
+                    .resizable()
+                    .frame(width: 18, height: 18)
+                Text(app.name).lineLimit(1)
+                Circle()
+                    .fill(.green)
+                    .frame(width: 5, height: 5)
+                    .opacity(app.isPlaying ? 1 : 0)
+                    // State change seen a few times a minute: a short fade, no movement.
+                    .animation(.easeOut(duration: 0.15), value: app.isPlaying)
+                    .accessibilityLabel(app.isPlaying ? "Playing" : "")
+                Spacer(minLength: 8)
+                Text(current)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .contentShape(Rectangle())
+            // Menus highlight instantly; no hover animation.
+            .background(hover.on ? Color.primary.opacity(0.08) : .clear, in: RoundedRectangle(cornerRadius: 6))
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 5)
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .onHover { hover.on = $0 }
     }
+}
+
+private final class Hover: ObservableObject {
+    @Published var on = false
 }
 
 private struct Footer: View {
@@ -199,8 +226,7 @@ private struct Footer: View {
                 .keyboardShortcut("q")
         }
         .buttonStyle(.borderless)
-        .font(.callout)
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 }

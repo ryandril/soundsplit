@@ -2,12 +2,22 @@ import SwiftUI
 
 @main
 struct SoundSplitApp: App {
-    @StateObject private var store = Store()
+    @NSApplicationDelegateAdaptor private var delegate: AppDelegate
 
+    // The UI is the menu bar panel; SwiftUI still needs one scene.
     var body: some Scene {
-        MenuBarExtra("SoundSplit", systemImage: "hifispeaker.2") {
-            ContentView().environmentObject(store)
-        }
-        .menuBarExtraStyle(.window)
+        Settings { EmptyView() }
+    }
+}
+
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var store: Store?
+    private var menuBar: MenuBarController?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let store = Store()
+        self.store = store
+        menuBar = MenuBarController(store: store)
     }
 }
