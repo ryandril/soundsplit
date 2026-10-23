@@ -9,20 +9,35 @@ import SwiftUI
 final class MenuBarController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let panel: MenuPanel
+    private let host: SizingHostingView
     private var monitors: [Any] = []
 
     init(store: Store) {
-        let host = SizingHostingView(rootView: AnyView(ContentView().environmentObject(store)))
+        host = SizingHostingView(rootView: AnyView(ContentView().environmentObject(store)))
         panel = MenuPanel(content: host)
         super.init()
         // Keep the top edge pinned under the icon when the app list grows or shrinks.
-        host.onSizeChange = { [weak self] in self?.position() }
+        host.onSizeChange = { [weak self] in
+            guard let self, panel.isVisible else { return }
+            position()
+        }
 
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "hifispeaker.2", accessibilityDescription: "SoundSplit")
             button.target = self
             button.action = #selector(toggle)
         }
+        #if DEBUG
+        // `--open-panel` opens the panel at launch and prints its frames, to check sizing without clicking.
+        if CommandLine.arguments.contains("--open-panel") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [self] in
+                open()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
+                    FileHandle.standardError.write("panel \(panel.frame) content \(host.frame)\n".data(using: .utf8)!)
+                }
+            }
+        }
+        #endif
     }
 
     @objc private func toggle() {
@@ -56,7 +71,8 @@ final class MenuBarController: NSObject {
         guard let button = statusItem.button, let buttonWindow = button.window,
               let screen = buttonWindow.screen ?? NSScreen.main else { return }
         let icon = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
-        let size = panel.contentView?.fittingSize ?? .zero
+        // Ask the SwiftUI content, not the glass around it: the glass view doesn't report its content's size.
+        let size = host.fittingSize
         let visible = screen.visibleFrame
         // Left-aligned with the icon like a menu, nudged back on screen near the right edge.
         let x = min(max(icon.minX, visible.minX + 8), visible.maxX - size.width - 8)
@@ -99,6 +115,7 @@ final class MenuPanel: NSPanel {
         if #available(macOS 26.0, *) {
             let glass = NSGlassEffectView()
             glass.cornerRadius = radius
+            content.autoresizingMask = [.width, .height]
             glass.contentView = content
             chrome = glass
         } else {
